@@ -1,8 +1,7 @@
 from cryptography.fernet import Fernet
 import os
 
-# Real layihədə bu açarı settings.py faylından ENV dəyişəni kimi oxumaq daha təhlükəsizdir
-key = os.getenv('FERNET_SECRET_KEY')  # və ya settings.FERNET_SECRET_KEY
+key = os.getenv('FERNET_SECRET_KEY')
 fernet = Fernet(key)
 
 def encrypt_data(data: str) -> str:
