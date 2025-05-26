@@ -38,7 +38,7 @@ class CardSerializer(serializers.ModelSerializer):
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
-        fields = ['id', 'event_id', 'ticket_count', 'total_price', 'created_at', 'is_successful']
+        fields = ['id', 'card', 'event_id', 'ticket_count', 'total_price', 'created_at', 'is_successful']
         read_only_fields = ['total_price', 'created_at', 'is_successful']
 
     def validate(self, data):

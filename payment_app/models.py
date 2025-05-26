@@ -1,6 +1,8 @@
 from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator
+from decimal import Decimal
+import requests
 
 class Card(models.Model):
     user_id = models.IntegerField()
