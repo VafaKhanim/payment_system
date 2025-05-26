@@ -10,7 +10,7 @@ class Card(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Card for {self.user}"
+        return f"Card for user_id {self.user_id}"
 
 class Payment(models.Model):
     user_id = models.IntegerField()
@@ -23,7 +23,7 @@ class Payment(models.Model):
     payment_reference = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
-        return f"Payment by {self.user.username} for event {self.event_id}"
+        return f"Payment by user_id {self.user_id} for event {self.event_id}"
 
     def save(self, *args, **kwargs):
         if not self.pk:
