@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, permissions
 from rest_framework.response import Response
 from .models import Card, Payment, MockBank
 from .serializers import CardSerializer, PaymentSerializer
@@ -8,10 +8,13 @@ from decimal import Decimal
 import requests
 import uuid
 from django.conf import settings
+from rest_framework.exceptions import ValidationError
+
 
 
 class CardViewSet(viewsets.ModelViewSet):
     serializer_class = CardSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return Card.objects.filter(user_id=self.request.user.id)
@@ -21,9 +24,9 @@ class CardViewSet(viewsets.ModelViewSet):
 
 
 
-
 class PaymentViewSet(viewsets.ModelViewSet):
     serializer_class = PaymentSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return Payment.objects.filter(user_id=self.request.user.id)
@@ -37,6 +40,8 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
     def process_payment(self, payment):
         try:
+            if payment.card is None:
+                raise ValueError("Payment must be associated with a card")
             card = payment.card
             decrypted_card_number = decrypt_data(card.encrypted_card_number)
             decrypted_cvv = decrypt_data(card.encrypted_cvv)
@@ -73,7 +78,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
     def notify_event_service(self, payment):
         ticket_data = {
             "event_id": payment.event_id,
-            "user_id": payment.user.id,
+            "user_id": payment.user_id,
             "ticket_count": payment.ticket_count,
             "payment_reference": payment.payment_reference
         }
@@ -101,3 +106,5 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
         except requests.exceptions.RequestException as e:
             pass
+
+
