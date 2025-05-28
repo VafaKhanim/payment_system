@@ -1,0 +1,134 @@
+<!-- templates/payment/payment_form.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .payment-form {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        input[type="text"], input[type="email"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        .submit-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+        .payment-info {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-form">
+        <h2>Payment Details</h2>
+
+        <div class="payment-info">
+            <p><strong>Payment ID:</strong> {{ payment.payment_id }}</p>
+            <p><strong>Amount:</strong> ${{ payment.amount }}</p>
+        </div>
+
+        <form id="paymentForm" method="post" action="/api/payment/{{ payment.payment_id }}/process/">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="card_number">Card Number:</label>
+                <input type="text" id="card_number" name="card_number"
+                       placeholder="4532123456789012" maxlength="19" minlength="13"
+                       pattern="[0-9]+" required>
+            </div>
+
+            <div class="form-group">
+                <label for="card_holder">Card Holder Name:</label>
+                <input type="text" id="card_holder" name="card_holder"
+                       placeholder="John Doe" minlength="2"
+                       pattern="[a-zA-Z\s]+" required>
+            </div>
+
+            <div class="form-group">
+                <label for="expiry_date">Expiry Date (MM/YY):</label>
+                <input type="text" id="expiry_date" name="expiry_date"
+                       placeholder="12/26" maxlength="5"
+                       pattern="(0[1-9]|1[0-2])\/[0-9]{2}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="cvv">CVV:</label>
+                <input type="text" id="cvv" name="cvv"
+                       placeholder="123" maxlength="4" minlength="3"
+                       pattern="[0-9]{3,4}" required>
+            </div>
+
+            <button type="submit" class="submit-btn">Pay ${{ payment.amount }}</button>
+        </form>
+
+        <div id="loading" class="loading">Processing payment...</div>
+    </div>
+
+    <script>
+        // Format expiry date input
+        document.getElementById('expiry_date').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 2) {
+                value = value.slice(0, 2) + '/' + value.slice(2, 4);
+            }
+            e.target.value = value;
+        });
+
+        // Only allow digits in card number and CVV
+        document.getElementById('card_number').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+
+        document.getElementById('cvv').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+    </script>
+</body>
+</html>
