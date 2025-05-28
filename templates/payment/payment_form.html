@@ -75,7 +75,7 @@
             <p><strong>Amount:</strong> ${{ payment.amount }}</p>
         </div>
 
-        <form id="paymentForm" method="post" action="/api/payment/{{ payment.payment_id }}/process/">
+        <form id="paymentForm" method="post" enctype="multipart/form-data" action="{% url 'payment_process' payment_id=payment.payment_id %}">
             {% csrf_token %}
             <div class="form-group">
                 <label for="card_number">Card Number:</label>

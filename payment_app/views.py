@@ -4,28 +4,24 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
-from django.http import HttpResponse
 from django.contrib import messages
 import requests
+from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
 
 from .models import Payment, Card
 from .serializers import PaymentCreateSerializer, CardDataSerializer, PaymentSerializer
 from .utils.validation import CardValidator
 
 
-def send_callback(payment, status, message):
+def send_callback(payment, status_, message):
     try:
         callback_data = {
             'payment_id': str(payment.payment_id),
-            'status': status,
+            'status': status_,
             'amount': str(payment.amount),
             'message': message
         }
-        response = requests.post(
-            payment.callback_url,
-            json=callback_data,
-            timeout=30
-        )
+        response = requests.post(payment.callback_url, json=callback_data, timeout=30)
         print(f"Callback sent to {payment.callback_url}, Response: {response.status_code}")
     except requests.RequestException as e:
         print(f"Callback failed: {e}")
@@ -48,6 +44,7 @@ def find_card(card_data):
 
 
 class PaymentViewSet(ViewSet):
+    # /payments/ POST - create payment
     def create(self, request):
         serializer = PaymentCreateSerializer(data=request.data)
         if serializer.is_valid():
@@ -65,6 +62,7 @@ class PaymentViewSet(ViewSet):
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    # /payments/<payment_id>/ GET - payment details
     def retrieve(self, request, pk=None):
         payment = get_object_or_404(Payment, payment_id=pk)
         serializer = PaymentSerializer(payment)
@@ -72,6 +70,9 @@ class PaymentViewSet(ViewSet):
 
 
 class PaymentProcessView(APIView):
+    # /payments/<payment_id>/process/ POST - card data to process payment
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
+
     def post(self, request, payment_id):
         payment = get_object_or_404(Payment, payment_id=payment_id)
 
@@ -120,16 +121,16 @@ class PaymentProcessView(APIView):
             send_callback(payment, 'failed', str(e))
             return Response({
                 'status': 'error',
-                'message': 'Payment processing failed'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+                'message': 'Payment processing failed',
+                'detail': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 def payment_page(request, payment_id):
     payment = get_object_or_404(Payment, payment_id=payment_id)
 
     if payment.status != 'pending':
-        return HttpResponse('Bu payment artiq emal olunub')
+        return HttpResponse('Bu payment artıq emal olunub')
 
     if request.method == 'POST':
         card_data = {
@@ -170,3 +171,4 @@ def payment_page(request, payment_id):
             messages.error(request, str(e))
 
     return render(request, 'payment/payment_form.html', {'payment': payment})
+
