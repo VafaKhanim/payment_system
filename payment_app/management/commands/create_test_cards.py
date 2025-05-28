@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
-from payment.models import Card
+from payment_app.models import Card
+
 
 
 class Command(BaseCommand):
